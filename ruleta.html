@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ruleta PRO Stream</title>
+
+<style>
+body {
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* LUZ */
+.container::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg,#00f2ff,#ff512f,#ffd700,#ff00cc);
+  box-shadow: 0 0 20px white;
+  z-index: 5;
+}
+
+/* FLECHA */
+.pointer {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  z-index: 20;
+
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 34px solid black;
+}
+
+.pointer::after {
+  content: "";
+  position: absolute;
+  top: -32px;
+  left: -14px;
+
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 28px solid #ffd700;
+
+  filter:
+    drop-shadow(0 0 5px #ffd700)
+    drop-shadow(0 0 10px #ffd700)
+    drop-shadow(0 0 20px #ffea00);
+}
+
+/* TRACK */
+.track {
+  display: flex;
+  position: absolute;
+  transition: all 0.5s ease;
+}
+
+.track.blur {
+  filter: blur(6px);
+  opacity: 0.2;
+}
+
+/* ITEMS */
+.item {
+  width: 240px;
+  height: 200px;
+  margin: 0 5px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-weight: 900;
+}
+
+.item span {
+  font-size: 28px;
+  text-shadow: 0 0 10px black;
+}
+
+.emoji {
+  font-size: 50px;
+}
+
+/* COLORES */
+.bronce { background: linear-gradient(135deg,#5c3b1e,#8b5a2b); }
+.plata { background: linear-gradient(135deg,#aaa,#eee); }
+.oro { background: linear-gradient(135deg,#ffd700,#b8860b); }
+.diamante { background: linear-gradient(135deg,#00f2ff,#8a2be2); }
+.unreal { background: linear-gradient(135deg,#ff00cc,#3333ff); }
+
+/* GANADOR */
+#winnerText {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%) scale(0.7);
+
+  padding: 12px 25px;
+  border-radius: 14px;
+
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+
+  opacity: 0;
+
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(12px);
+
+  text-shadow:
+    0 0 10px black,
+    0 0 20px black;
+
+  box-shadow:
+    0 0 20px rgba(0,0,0,0.9),
+    0 0 30px rgba(255,215,0,0.5);
+
+  z-index: 999;
+
+  transition: all 0.4s ease;
+}
+
+#winnerText.show {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.05);
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="pointer"></div>
+  <div class="track" id="track"></div>
+  <div id="winnerText"></div>
+</div>
+
+<script>
+const track = document.getElementById("track");
+const winnerText = document.getElementById("winnerText");
+
+/* RANGOS */
+const items = [
+  {name:"Bronce", emoji:"🥉"},
+  {name:"Plata", emoji:"🥈"},
+  {name:"Oro", emoji:"🥇"},
+  {name:"Diamante", emoji:"💎"},
+  {name:"👑 Unreal", emoji:"👑"}
+];
+
+/* GENERAR RULETA */
+for(let i=0;i<200;i++){
+  const item = items[Math.floor(Math.random()*items.length)];
+
+  const div=document.createElement("div");
+  div.className="item";
+
+  let r=item.name.toLowerCase();
+  if(r.includes("bronce")) r="bronce";
+  else if(r.includes("plata")) r="plata";
+  else if(r.includes("oro")) r="oro";
+  else if(r.includes("diamante")) r="diamante";
+  else if(r.includes("unreal")) r="unreal";
+
+  div.classList.add(r);
+
+  div.innerHTML = `
+    <div class="emoji">${item.emoji}</div>
+    <span>${item.name}</span>
+  `;
+
+  track.appendChild(div);
+}
+
+/* SPIN FORZADO A DIAMANTE */
+function spinRoulette(){
+
+  const allItems = document.querySelectorAll(".item");
+  const center = window.innerWidth / 2;
+
+  let target = null;
+
+  allItems.forEach(item => {
+    if(item.innerText.includes("Diamante") && !target){
+      target = item;
+    }
+  });
+
+  const rect = target.getBoundingClientRect();
+  const itemCenter = rect.left + rect.width / 2;
+
+  const offset = itemCenter - center;
+
+  track.animate([
+    { transform:'translateX(0)' },
+    { transform:`translateX(-${offset}px)` }
+  ],{
+    duration:3000,
+    easing:'ease-out',
+    fill:'forwards'
+  });
+
+  setTimeout(()=>{
+
+    track.classList.add("blur");
+
+    winnerText.innerText = "🔥 SOS EL RANGO: " + target.innerText;
+    winnerText.classList.add("show");
+
+  },3000);
+}
+
+/* TEST */
+spinRoulette();
+</script>
+
+</body>
+</html>
